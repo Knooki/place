@@ -1,0 +1,780 @@
+#include <iostream>
+#include <conio.h>
+#include <string.h>
+#include <ctype.h>
+#include <string>
+#include <fstream>
+
+	using namespace std;
+
+	struct service {
+		char number[10];
+		char brand[16];
+		int mileage;
+		char master[16];
+		float price;
+	};
+
+	struct service arr[30];
+	struct service tmp;
+	int counter = 0, flag = 0, i = 0, j = 0;
+
+	int menu();
+	void input();
+	void sort_a();
+	void search();
+	void change();
+	void del();
+	void output();
+	void sorting(int field_num);
+	bool is_repeat_operation();
+	void output_single(int i);
+	void save_in_file();
+	void load_from_file();
+
+#define file  "autoservice.txt"
+
+	int main()
+	{
+		setlocale(LC_ALL, "Russian");
+		load_from_file();
+		while (1)
+		{
+			switch (menu())
+			{
+			case 1:
+				do
+				{
+					input();
+				} while (is_repeat_operation());
+				break;
+			case 2:
+				do
+				{
+					sort_a();
+				} while (is_repeat_operation());
+				break;
+			case 3:
+				do
+				{
+					search();
+				} while (is_repeat_operation());
+				break;
+			case 4:
+				do
+				{
+					change();
+				} while (is_repeat_operation());
+				break;
+			case 5:
+				do
+				{
+					del();
+				} while (is_repeat_operation());
+				break;
+			case 6:
+				do
+				{
+					output();
+				} while (is_repeat_operation());
+				break;
+			case 7:
+				save_in_file();
+				return(0);
+			default: cout << "Ошибка. Вы ввели не существующий раздел в меню.\n";
+				cout << "Нажмите любую кнопку для продолжения.\n";
+				_getch();
+				break;
+			}
+		}
+	}
+
+	int menu()
+	{
+		system("cls");
+		int num;
+		cout << "Введите:\n";
+		cout << "1)Ввод данных ремонта.\n";
+		cout << "2)Сортировка данных по заданному параметру.\n";
+		cout << "3)Поиск по заданному параметру.\n";
+		cout << "4)Изменение данных.\n";
+		cout << "5)Удаление данных.\n";
+		cout << "6)Вывод на экран данных.\n";
+		cout << "7)Выход.\n";
+		rewind(stdin);
+		cin >> num;
+		return (num);
+	}
+
+	void input()
+	{
+		system("cls");
+		if (counter < 30)
+		{
+			cout << "Запись номер " << counter + 1;
+			do {
+				flag = 0;
+				cout << "\nВведите полный регистрационный номер автомобиля.(Пр. 1234 BM-3)\n";
+				rewind(stdin);
+				cin.getline(arr[counter].number, 10);
+				for (i = counter - 1; i > -1; i--)
+					if (_stricmp(arr[counter].number, arr[i].number) == 0) flag = 1;
+				for (i = 0; i < 9; i++)
+				{
+					if (i < 4)
+						if (!isdigit(arr[counter].number[i]))
+						{
+							flag = 2;
+							break;
+						}
+					if (i == 4)
+						if (!isspace(arr[counter].number[i]))
+						{
+							flag = 2; break;
+						}
+					if (i > 4 && i < 7)
+						if (!isalpha(arr[counter].number[i]))
+						{
+							flag = 2; break;
+						}
+					if (i == 7)
+						if (arr[counter].number[i] != '-')
+						{
+							flag = 2;
+							break;
+						}
+					if (i == 8)
+					{
+						if (!isdigit(arr[counter].number[i]))
+						{
+							flag = 2;
+							break;
+						}
+						if (arr[counter].number[i] < '1' || arr[counter].number[i] > '7')
+						{
+							flag = 3;
+							break;
+						}
+					}
+				}
+				if (flag == 1) cout << "Такой автомобильный номер уже записан!\n";
+				if (flag == 2) cout << "Введенный номер не соответствует шаблону.\n";
+				if (flag == 3) cout << "Последняя цифра номера должна быть равна от 1 до 7 включительно.\n";
+			} while (flag != 0);
+			flag = 0;
+			do
+			{
+				cout << "Введите марку автомобиля.\n";
+				rewind(stdin);
+				cin >> arr[counter].brand;
+				flag = 0;
+				for (i = 0; arr[counter].brand[i] != '\0'; i++)
+					if (!isalpha(arr[counter].brand[i]))
+					{
+						flag++;
+						cout << "В марке могут быть только буквы.\n";
+						break;
+					}
+			} while (flag != 0);
+			do {
+				cout << "Введите пробег автомобиля (км).\n";
+				rewind(stdin);
+				cin >> arr[counter].mileage;
+				flag = 0;
+				if (arr[counter].mileage < 0)
+				{
+					flag++;
+					cout << "Пробег не может быть отрицательным.\n";
+					break;
+				}
+			} while (flag != 0);
+			flag = 0;
+			do
+			{
+				cout << "Введите фамилию мастера\n";
+				rewind(stdin);
+				cin >> arr[counter].master;
+				flag = 0;
+				for (i = 0; arr[counter].master[i] != '\0'; i++)
+					if (!isalpha(arr[counter].master[i]))
+					{
+						flag++;
+						cout << "В фамилии могут быть только буквы.\n";
+						break;
+					}
+			} while (flag != 0);
+			do {
+				cout << "Введите цену ремонта(в бел. рублях).\n";
+				rewind(stdin);
+				cin >> arr[counter].price;
+				flag = 0;
+				if (arr[counter].price < 0.01)
+				{
+					flag++;
+					cout << "Цена не может быть отрицательой или быть равной нулю.\n";
+				}
+			} while (flag != 0);
+			counter++;
+		}
+		else cout << "Введено максимальное количество записей.\n";
+	}
+
+	void search()
+	{
+		system("cls");
+		int sw, find_number, k;
+		float find_price;
+		char criterion[20], find_code;
+		if (counter == 0)
+			cout << "\nНет записей: \n";
+		else
+		{
+			cout << "Введите: \n";
+			cout << "1)Поиск по номеру в порядке записей.\n";
+			cout << "2)Поиск по марке.\n";
+			cout << "3)Поиск по мастеру.\n";
+			cout << "4)Поиск по введенной цене.\n";
+			cout << "5)Поиск по введенному пробегу.\n";
+			cout << "6)Поиск по введенному номеру.\n";
+			cout << "7)Поиск по коду регионов.(1-Бр, 2-Втб, 3-Гом, 4-Грод 5-Мнск обл, 6-Мог, 7-Мин)\n";
+			rewind(stdin);
+			cin >> sw;
+			switch (sw)
+			{
+			case 1:
+				cout << "Введите искомый номер записи. Всего : " << counter << endl;
+				rewind(stdin);
+				cin >> k;
+				if (k > 0 && k < counter + 1)
+					output_single(i);
+				else cout << "Не существует записи под номером " << k << endl;
+				break;
+			case 2:
+				cout << "Имеющиеся марки автомобиля:\n";
+				cout << arr[0].brand << endl;
+				flag = 0;
+				for (i = 1; i < counter; i++)
+				{
+					for (j = 0; j < i; j++)
+						if (_stricmp(arr[i].brand, arr[j].brand) == 0) flag++;
+					if (flag == 0)
+						cout << arr[i].brand << endl;
+					flag = 0;
+				}
+				do
+				{
+					cout << "Введите марку, по которой надо найти.\n";
+					rewind(stdin);
+					cin >> criterion;
+					for (i = 0; i < counter; i++)
+						if (_stricmp(arr[i].brand, criterion) == 0) {
+							output_single(i);
+							flag = 1;
+						}
+					if (flag == 0) cout << "Вы ввели несуществующую в списке марку.\n";
+				} while (flag == 0);
+				flag = 0;
+				break;
+			case 3:
+				cout << "Работающие мастера:\n";
+				cout << arr[0].master << endl;
+				flag = 0;
+				for (i = 1; i < counter; i++)
+				{
+					for (j = 0; j < i; j++)
+						if (_stricmp(arr[i].master, arr[j].master) == 0) flag++;
+					if (flag == 0)
+						cout << arr[i].master << endl;
+					flag = 0;
+				}
+				do
+				{
+					cout << "Введите мастера, по которому надо найти.\n";
+					rewind(stdin);
+					cin >> criterion;
+					for (i = 0; i < counter; i++)
+						if (_stricmp(arr[i].master, criterion) == 0) {
+							output_single(i);
+							flag = 1;
+						}
+					if (flag == 0) cout << "Вы ввели несуществующего в списке мастера.\n";
+				} while (flag == 0);
+				flag = 0;
+				break;
+			case 4:
+				flag = 0;
+				cout << "Достуные цены:\n";
+				cout << arr[0].price<<endl;
+				for (i = 1; i < counter; i++)
+				{
+					for (j = 0; j < i; j++)
+						if (arr[i].price == arr[j].price) flag++;
+					if (flag == 0)
+						cout << arr[i].price << endl;
+					flag = 0;
+				}
+				do
+				{
+					cout << "Введите искомую цену.\n";
+					rewind(stdin);
+					cin >> find_price;
+					flag = 0;
+					for (i = 0; i < counter; i++)
+						if (arr[i].price == find_price) {
+							output_single(i);
+							flag = 1;
+						}
+					if (flag == 0) cout << "Не существует ремонта с такой ценой.\n";
+				} while (flag == 0);
+				flag = 0;
+				break;
+			case 5:
+				cout << "Достуные пробеги:\n";
+				cout << arr[0].mileage<<endl;
+				for (i = 1; i < counter; i++)
+				{
+					for (j = 0; j < i; j++)
+						if (arr[i].mileage == arr[j].mileage) flag++;
+					if (flag == 0)
+						cout << arr[i].mileage << endl;
+					flag = 0;
+				}
+				do
+				{
+					cout << "Введите искомый пробег.\n";
+					rewind(stdin);
+					cin >> find_number;
+					flag = 0;
+					for (i = 0; i < counter; i++)
+						if (arr[i].mileage == find_number) {
+							output_single(i);
+							flag = 1;
+						}
+					if (flag == 0) cout << "Не существует автомобиля с таким пробегом.\n";
+				} while (flag == 0);
+				flag = 0;
+				break;
+			case 6:
+				cout << "Доступные номера:\n";
+				for (i = 0; i < counter; i++)
+					cout << arr[i].number << endl;
+				do
+				{
+					cout << "Введите искомый номер.\n";
+					rewind(stdin);
+					cin.getline(criterion, 10);
+					for (i = 0; i < counter; i++)
+						if (_stricmp(arr[i].number, criterion) == 0)
+						{
+							output_single(i);
+							flag = 1;
+						}
+					if (flag == 0) cout << "Не сущесвует автомобиля с таким номером.\n";
+				} while (flag == 0);
+				flag = 0;
+				break;
+			case 7:
+				do
+				{
+					cout << "Введите искомый код региона.\n";
+					cin >> find_code;
+					if (find_code<'1' || find_code>'7')
+					{
+						cout << "Код региона должен быть от 1 до 7 включительно.";
+						continue;
+					}
+					for (i = 0; i < counter; i++)
+						if (arr[i].number[8] == find_code)
+						{
+							output_single(i);
+							flag = 1;
+						}
+					if (flag == 0) cout << "Несуществует введенного кода региона среди имеющихся номеров.\n";
+				} while (flag == 0);
+				break;
+			default: cout << "Ошибка. Не существует такой опции, которую вы ввели.\n"; break;
+			}
+		}
+	}
+
+	void change()
+	{
+		system("cls");
+		int c, per;
+		if (counter == 0) cout << "Нет записей.";
+		else
+		{
+			do
+			{
+				cout << "Введите номер записи\n";
+				rewind(stdin);
+				cin >> c;
+				do
+				{
+					cout << "Введите: \n";
+					cout << "1)Изменение автомобильного номера.\n";
+					cout << "2)Изменение марки.\n";
+					cout << "3)Изменение пробега.\n";
+					cout << "4)Изменение мастера.\n";
+					cout << "5)Изменение цены.\n";
+					cout << "6)Возрат к выбору номера записи.\n";
+					cout << "7)Выход в главное меню.\n";
+					rewind(stdin);
+					cin >> per;
+					switch (per)
+					{
+					case 1: cout << "Введите новый автомобильный номер\n";
+						rewind(stdin);
+						cin.getline(arr[c-1].number, 10);
+						break;
+					case 2:
+						cout << "Введите новую марку\n";
+						rewind(stdin);
+						cin >> arr[c - 1].brand;
+						break;
+					case 3:
+						cout << "Введите новый пробег \n";
+						rewind(stdin);
+						cin >> arr[c - 1].mileage;
+						break;
+					case 4:
+						cout << "Введите нового мастера\n";
+						rewind(stdin);
+						cin >> arr[c - 1].master;
+						break;
+					case 5:
+						cout << "Введите новую цену\n";
+						rewind(stdin);
+						cin >> arr[c - 1].price;
+						break;
+					case 7:return;
+					default: cout << "Не существует операции, которую вы ввели.\n"; break;
+					}
+				} while (per != 6);
+			} while (1);
+		}
+	}
+
+	void del()
+	{
+		system("cls");
+		int d;
+		if (counter == 0) cout << "Нет записей.";
+		else
+		{
+			cout << "\nВведите номер записи, которую необходимо удалить\n";
+			cout << "Если необходимо удалить все записи,нажмите '0'\n";
+			rewind(stdin);
+			cin >> d;
+			if (d > 0 && d < counter + 1)
+			{
+				for (i = (d - 1); i < counter; i++)
+					arr[i] = arr[i + 1];
+				counter = counter - 1;
+			}
+			if (d == 0)
+			{
+				for (i = 0; i < counter; i++)
+					arr[i] = tmp;
+				counter = 0;
+			}
+			if (d < 0 || d > counter)
+				cout << "Ошибка. Не существует записи под таким номером.\n";
+		}
+	}
+
+	void output()
+	{
+		system("cls");
+		int sw;
+		int k, i;
+		if (counter == 0)
+			cout << "\nНет записей: \n";
+		else
+		{
+			cout << "Введите: \n";
+			cout << "1)Вывод одной определенной записи.\n";
+			cout << "2)Вывод всех записей.\n";
+			rewind(stdin);
+			cin >> sw;
+			switch (sw)
+			{
+			case 1:
+				cout << "Введите номер записи, которую нужно вывести. Всего записей: " << counter << endl;
+				cin >> k;
+				output_single(k-1);
+				break;
+			case 2:
+				for (i = 0; i < counter; i++)
+				{
+					output_single(i);
+				}
+				break;
+			default: cout << "Ошибка. Вы ввели не существующую опцию.\n"; break;
+			}
+		}
+	}
+
+	void sort_a()
+	{
+		system("cls");
+		int er, order;
+		if (counter == 0) cout << "Нет записей.";
+		else
+		{
+			cout << "Выберите тип сортировки:\n";
+			cout << "1)По марке автомобиля.\n";
+			cout << "2)По количеству пробега.\n";
+			cout << "3)По мастеру, сделавшеиму заказ.\n";
+			cout << "4)По сумме ремонта.\n";
+			rewind(stdin);
+			cin >> er;
+			switch (er)
+			{
+			case 1:
+				cout << "Тип сортировки:\n";
+				cout << "1)В алфавитном порядке.\n";
+				cout << "2)В обратном алфавитном порядке.\n";
+				rewind(stdin);
+				cin >> order;
+				switch (order)
+				{
+				case 1:
+					sorting(1);
+					break;
+				case 2:
+					sorting(2);
+					break;
+				default:
+					cout << "Ошибка. Опция, которую вы ввели, не существует.\n";
+					break;
+				}
+				break;
+			case 2:
+				cout << "Тип сортировки:\n";
+				cout << "1)По убыванию.\n";
+				cout << "2)По возрастанию.\n";
+				rewind(stdin);
+				cin >> order;
+				switch (order)
+				{
+				case 1:
+					sorting(3);
+					break;
+				case 2:
+					sorting(4);
+					break;
+				default:
+					cout << "Ошибка. Опция, которую вы ввели, не существует.\n";
+					break;
+				}
+				break;
+			case 3:
+				cout << "Тип сортировки:\n";
+				cout << "1)В алфавитном порядке.\n";
+				cout << "2)В обратном алфавитном порядке.\n";
+				rewind(stdin);
+				cin >> order;
+				switch (order)
+				{
+				case 1:
+					sorting(5);
+					break;
+				case 2:
+					sorting(6);
+					break;
+				default:
+					cout << "Ошибка. Опция, которую вы ввели, не существует.\n";
+					break;
+				}
+				break;
+			case 4:
+				cout << "Тип сортировки:\n";
+				cout << "1)По убыванию.\n";
+				cout << "2)По возрастанию.\n";
+				rewind(stdin);
+				cin >> order;
+				switch (order)
+				{
+				case 1:
+					sorting(7);
+					break;
+				case 2:
+					sorting(8);
+					break;
+				default:
+					cout << "Ошибка. Опция, которую вы ввели, не существует.\n";
+					break;
+				}
+				break;
+			default: cout << "Ошибка. Опция, которую вы ввели, не существует.\n"; break;
+			}
+		}
+	}
+
+	void sorting(int field_num)
+	{
+		int i, j, key;
+		switch (field_num)
+		{
+		case 1:
+			for (int i = 0; i <= counter; i++)
+				for (int j = counter - 1; j > i; j--)
+					if (strcmp(arr[j].brand, arr[j - 1].brand) < 0)
+					{
+						tmp = arr[j];
+						arr[j] = arr[j - 1];
+						arr[j - 1] = tmp;
+					}
+			break;
+		case 2:
+			for (int i = 0; i <= counter; i++)
+				for (int j = counter - 1; j > i; j--)
+					if (strcmp(arr[j].brand, arr[j - 1].brand) > 0)
+					{
+						tmp = arr[j];
+						arr[j] = arr[j - 1];
+						arr[j - 1] = tmp;
+					}
+			break;
+		case 3:
+			for (i = counter - 2; i >= 0; i--)
+			{
+				key = arr[i].mileage;
+				j = i + 1;
+				while (j < counter && key < arr[j].mileage)
+				{
+					arr[j - 1] = arr[j];
+					++j;
+				}
+				arr[j - 1].mileage = key;
+			}
+			break;
+		case 4:
+			for (i = 1; i < counter; i++)
+			{
+				key = arr[i].mileage;
+				j = i - 1;
+				while (j >= 0 && key < arr[j].mileage)
+				{
+					arr[j + 1] = arr[j];
+					--j;
+				}
+				arr[j + 1].mileage = key;
+			}
+			break;
+		case 5:
+			for (int i = 0; i <= counter; i++)
+				for (int j = counter - 1; j > i; j--)
+					if (strcmp(arr[j].master, arr[j - 1].master) < 0)
+					{
+						tmp = arr[j];
+						arr[j] = arr[j - 1];
+						arr[j - 1] = tmp;
+					}
+			break;
+		case 6:
+			for (int i = 0; i <= counter; i++)
+				for (int j = counter - 1; j > i; j--)
+					if (strcmp(arr[j].master, arr[j - 1].master) > 0)
+					{
+						tmp = arr[j];
+						arr[j] = arr[j - 1];
+						arr[j - 1] = tmp;
+					}
+			break;
+		case 7:
+			for (i = counter - 2; i >= 0; i--)
+			{
+				key = arr[i].price;
+				j = i + 1;
+				while (j < counter && key < arr[j].price)
+				{
+					arr[j - 1] = arr[j];
+					++j;
+				}
+				arr[j - 1].price = key;
+			}
+			break;
+		case 8:
+			for (i = 1; i < counter; i++)
+			{
+				key = arr[i].price;
+				j = i - 1;
+				while (j >= 0 && key < arr[j].price)
+				{
+					arr[j + 1] = arr[j];
+					--j;
+				}
+				arr[j + 1].price = key;
+			}
+			break;
+		}
+	}
+
+	void output_single(int i)
+	{
+		cout << "Запись номер: " << i + 1 << endl;
+		cout << "Номер:" << arr[i].number << endl;
+		cout << "Марка:" << arr[i].brand << endl;
+		cout << "Пробег:" << arr[i].mileage << endl;
+		cout << "Мастер:" << arr[i].master << endl;
+		cout << "Цена:" << arr[i].price << endl;
+		cout << "____________" << endl;
+	}
+
+	bool is_repeat_operation()
+	{
+		printf("\nНажмите любую кнопку для продолжения)\n");
+		printf("Чтобы выйти в меню нажмите '0'\n");
+		if (_getch() == '0')return(false);
+		else return(true);
+	}
+
+	void load_from_file()
+	{
+		ifstream fin;
+		fin.open(file);
+		if (!fin.is_open())
+		{
+			cout << "Ошибка открытия файла.\n";
+		}
+		else {
+			fin >> counter;
+			i = 0;
+			fin.ignore(numeric_limits<streamsize>::max(), '\n');
+			while (fin.getline(arr[i].number, 10))
+			{
+				fin >> arr[i].brand;
+				fin >> arr[i].mileage;
+				fin >> arr[i].master;
+				fin >> arr[i].price;
+				fin.ignore(numeric_limits<streamsize>::max(), '\n');
+				i++;
+			}
+		}
+		fin.close();
+	}
+	
+	void save_in_file()
+	{
+		remove(file);
+		ofstream fout;
+		fout.open(file);
+		if (!fout.is_open())
+		{
+			cout << "Ошибка открытия файла.\n";
+		}
+		else {
+			fout << counter << endl;
+				for (i = 0; i < counter; i++)
+				{
+					fout << arr[i].number << endl;
+					fout << arr[i].brand << endl;
+					fout << arr[i].mileage << endl;
+					fout << arr[i].master << endl;
+					fout << arr[i].price << endl;
+				}
+		}
+		fout.close();
+	}
